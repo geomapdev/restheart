@@ -102,7 +102,7 @@ public class PostCollectionHandler extends PipedHttpHandler {
             //return;
             for (int i = 0; i < content.size(); i++) {
                 DBObject singleDoc = content.get(i);
-                SingleDocProcess(exchange, context, content);
+                SingleDocProcess(exchange, context, singleDoc);
                 
             }
         } else {
