@@ -53,28 +53,8 @@ public class PostCollectionHandler extends PipedHttpHandler {
         this.documentDAO = documentDAO;
     }
 
-    /**
-     *
-     * @param exchange
-     * @param context
-     * @throws Exception
-     */
-    @Override
-    public void handleRequest(HttpServerExchange exchange, RequestContext context) throws Exception {
-        DBObject content = context.getContent();
-
-        if (content == null) {
-            content = new BasicDBObject();
-        }
-
-        // cannot POST an array
-        if (content instanceof BasicDBList) {
-            ResponseHelper.endExchangeWithMessage(exchange, HttpStatus.SC_NOT_ACCEPTABLE, "data cannot be an array");
-            return;
-        }
-
-        ObjectId etag = RequestHelper.getWriteEtag(exchange);
-
+    private void SingleDocProcess(HttpServerExchange exchange, RequestContext context, singleDoc) throws Exception {
+        
         if (content.get("_id") != null && content.get("_id") instanceof String && RequestContext.isReservedResourceDocument((String) content.get("_id"))) {
             ResponseHelper.endExchangeWithMessage(exchange, HttpStatus.SC_FORBIDDEN, "reserved resource");
             return;
@@ -97,6 +77,40 @@ public class PostCollectionHandler extends PipedHttpHandler {
         int httpCode = this.documentDAO
                 .upsertDocumentPost(context.getDBName(), context.getCollectionName(), docId, content, etag);
 
+        
+        
+    }
+    /**
+     *
+     * @param exchange
+     * @param context
+     * @throws Exception
+     */
+    @Override
+    public void handleRequest(HttpServerExchange exchange, RequestContext context) throws Exception {
+        DBObject content = context.getContent();
+
+        if (content == null) {
+            content = new BasicDBObject();
+        }
+
+        ObjectId etag = RequestHelper.getWriteEtag(exchange);
+
+        // cannot POST an array
+        if (content instanceof BasicDBList) {
+            //ResponseHelper.endExchangeWithMessage(exchange, HttpStatus.SC_NOT_ACCEPTABLE, "data cannot be an array");
+            //return;
+            for (int i = 0; i < content.size(); i++) {
+                DBObject singleDoc = content.get(i);
+                SingleDocProcess(exchange, context, content);
+                
+            }
+        } else {
+            SingleDocProcess(exchange, context, content);
+        }
+
+        
+        
         // insert the Location handler
         exchange.getResponseHeaders()
                 .add(HttpString.tryFromString("Location"),
