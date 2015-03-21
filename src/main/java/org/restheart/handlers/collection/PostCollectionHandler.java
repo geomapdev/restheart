@@ -73,8 +73,9 @@ public class PostCollectionHandler extends PipedHttpHandler {
         if (content instanceof BasicDBList) {
             //ResponseHelper.endExchangeWithMessage(exchange, HttpStatus.SC_NOT_ACCEPTABLE, "data cannot be an array");
             //return;
-            for (int i = 0; i < content.size(); i++) {
-                DBObject singleDoc = content.get(i);
+            BasicDBList contentList = (BasicDBList)content;
+            for (int i = 0; i < contentList.size(); i++) {
+                DBObject singleDoc = contentList.get(i);
                 if (singleDoc.get("_id") != null && singleDoc.get("_id") instanceof String && RequestContext.isReservedResourceDocument((String) singleDoc.get("_id"))) {
                     ResponseHelper.endExchangeWithMessage(exchange, HttpStatus.SC_FORBIDDEN, "reserved resource");
                     return;
