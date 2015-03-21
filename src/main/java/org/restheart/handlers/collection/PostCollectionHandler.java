@@ -70,7 +70,6 @@ public class PostCollectionHandler extends PipedHttpHandler {
         ObjectId etag = RequestHelper.getWriteEtag(exchange);
         BasicDBList contentList;
             
-        Object docId;
         
         // cannot POST an array
         if (content instanceof BasicDBList) {
@@ -85,6 +84,7 @@ public class PostCollectionHandler extends PipedHttpHandler {
                 }
         
         
+                Object docId;
                 if (singleDoc.get("_id") == null) {
                     if (context.getDocIdType() == DOC_ID_TYPE.OID || context.getDocIdType() == DOC_ID_TYPE.STRING_OID) {
                         docId = new ObjectId();
@@ -100,7 +100,21 @@ public class PostCollectionHandler extends PipedHttpHandler {
                 int httpCode = this.documentDAO
                         .upsertDocumentPost(context.getDBName(), context.getCollectionName(), docId, singleDoc, etag);
     
-                    
+                
+        
+                // insert the Location handler
+                exchange.getResponseHeaders()
+                        .add(HttpString.tryFromString("Location"),
+                                getReferenceLink(context, exchange.getRequestURL(), docId));
+        
+                // send the warnings if any (and in case no_content change the return code to ok
+                if (context.getWarnings() != null && !context.getWarnings().isEmpty()) {
+                    sendWarnings(httpCode, exchange, context);
+                } else {
+                    exchange.setResponseCode(httpCode);
+                }
+        
+                exchange.endExchange();
             }
         } else {
             if (content.get("_id") != null && content.get("_id") instanceof String && RequestContext.isReservedResourceDocument((String) content.get("_id"))) {
@@ -108,7 +122,8 @@ public class PostCollectionHandler extends PipedHttpHandler {
                 return;
             }
     
-    
+            
+            Object docId;
             if (content.get("_id") == null) {
                 if (context.getDocIdType() == DOC_ID_TYPE.OID || context.getDocIdType() == DOC_ID_TYPE.STRING_OID) {
                     docId = new ObjectId();
@@ -124,22 +139,23 @@ public class PostCollectionHandler extends PipedHttpHandler {
             int httpCode = this.documentDAO
                     .upsertDocumentPost(context.getDBName(), context.getCollectionName(), docId, content, etag);
 
+
+        
+            // insert the Location handler
+            exchange.getResponseHeaders()
+                    .add(HttpString.tryFromString("Location"),
+                            getReferenceLink(context, exchange.getRequestURL(), docId));
+    
+            // send the warnings if any (and in case no_content change the return code to ok
+            if (context.getWarnings() != null && !context.getWarnings().isEmpty()) {
+                sendWarnings(httpCode, exchange, context);
+            } else {
+                exchange.setResponseCode(httpCode);
+            }
+    
+            exchange.endExchange();
         }
 
         
-        
-        // insert the Location handler
-        exchange.getResponseHeaders()
-                .add(HttpString.tryFromString("Location"),
-                        getReferenceLink(context, exchange.getRequestURL(), docId));
-
-        // send the warnings if any (and in case no_content change the return code to ok
-        if (context.getWarnings() != null && !context.getWarnings().isEmpty()) {
-            sendWarnings(httpCode, exchange, context);
-        } else {
-            exchange.setResponseCode(httpCode);
-        }
-
-        exchange.endExchange();
     }
 }
