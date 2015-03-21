@@ -52,8 +52,8 @@ public class PostCollectionHandler extends PipedHttpHandler {
     public PostCollectionHandler(DocumentDAO documentDAO) {
         this.documentDAO = documentDAO;
     }
-
-    private void SingleDocProcess(HttpServerExchange exchange, RequestContext context, singleDoc) throws Exception {
+    
+    public void SingleDocProcess(HttpServerExchange exchange, RequestContext context, singleDoc) throws Exception {
         
         if (content.get("_id") != null && content.get("_id") instanceof String && RequestContext.isReservedResourceDocument((String) content.get("_id"))) {
             ResponseHelper.endExchangeWithMessage(exchange, HttpStatus.SC_FORBIDDEN, "reserved resource");
