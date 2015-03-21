@@ -70,6 +70,8 @@ public class PostCollectionHandler extends PipedHttpHandler {
         ObjectId etag = RequestHelper.getWriteEtag(exchange);
         BasicDBList contentList;
             
+        Object docId;
+        
         // cannot POST an array
         if (content instanceof BasicDBList) {
             //ResponseHelper.endExchangeWithMessage(exchange, HttpStatus.SC_NOT_ACCEPTABLE, "data cannot be an array");
@@ -82,7 +84,6 @@ public class PostCollectionHandler extends PipedHttpHandler {
                     return;
                 }
         
-                Object docId;
         
                 if (singleDoc.get("_id") == null) {
                     if (context.getDocIdType() == DOC_ID_TYPE.OID || context.getDocIdType() == DOC_ID_TYPE.STRING_OID) {
@@ -107,7 +108,6 @@ public class PostCollectionHandler extends PipedHttpHandler {
                 return;
             }
     
-            Object docId;
     
             if (content.get("_id") == null) {
                 if (context.getDocIdType() == DOC_ID_TYPE.OID || context.getDocIdType() == DOC_ID_TYPE.STRING_OID) {
