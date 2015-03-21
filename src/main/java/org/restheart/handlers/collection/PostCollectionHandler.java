@@ -53,33 +53,6 @@ public class PostCollectionHandler extends PipedHttpHandler {
         this.documentDAO = documentDAO;
     }
     
-    public void SingleDocProcess(HttpServerExchange exchange, RequestContext context, singleDoc) throws Exception {
-        
-        if (content.get("_id") != null && content.get("_id") instanceof String && RequestContext.isReservedResourceDocument((String) content.get("_id"))) {
-            ResponseHelper.endExchangeWithMessage(exchange, HttpStatus.SC_FORBIDDEN, "reserved resource");
-            return;
-        }
-
-        Object docId;
-
-        if (content.get("_id") == null) {
-            if (context.getDocIdType() == DOC_ID_TYPE.OID || context.getDocIdType() == DOC_ID_TYPE.STRING_OID) {
-                docId = new ObjectId();
-            } else {
-                ResponseHelper.endExchangeWithMessage(exchange, HttpStatus.SC_NOT_ACCEPTABLE, "_id in content body is mandatory for documents with id type " + context.getDocIdType().name());
-                return;
-            }
-
-        } else {
-            docId = content.get("_id");
-        }
-
-        int httpCode = this.documentDAO
-                .upsertDocumentPost(context.getDBName(), context.getCollectionName(), docId, content, etag);
-
-        
-        
-    }
     /**
      *
      * @param exchange
@@ -102,11 +75,53 @@ public class PostCollectionHandler extends PipedHttpHandler {
             //return;
             for (int i = 0; i < content.size(); i++) {
                 DBObject singleDoc = content.get(i);
-                SingleDocProcess(exchange, context, singleDoc);
-                
+                if (singleDoc.get("_id") != null && singleDoc.get("_id") instanceof String && RequestContext.isReservedResourceDocument((String) singleDoc.get("_id"))) {
+                    ResponseHelper.endExchangeWithMessage(exchange, HttpStatus.SC_FORBIDDEN, "reserved resource");
+                    return;
+                }
+        
+                Object docId;
+        
+                if (singleDoc.get("_id") == null) {
+                    if (context.getDocIdType() == DOC_ID_TYPE.OID || context.getDocIdType() == DOC_ID_TYPE.STRING_OID) {
+                        docId = new ObjectId();
+                    } else {
+                        ResponseHelper.endExchangeWithMessage(exchange, HttpStatus.SC_NOT_ACCEPTABLE, "_id in content body is mandatory for documents with id type " + context.getDocIdType().name());
+                        return;
+                    }
+        
+                } else {
+                    docId = singleDoc.get("_id");
+                }
+        
+                int httpCode = this.documentDAO
+                        .upsertDocumentPost(context.getDBName(), context.getCollectionName(), docId, singleDoc, etag);
+    
+                    
             }
         } else {
-            SingleDocProcess(exchange, context, content);
+            if (content.get("_id") != null && content.get("_id") instanceof String && RequestContext.isReservedResourceDocument((String) content.get("_id"))) {
+                ResponseHelper.endExchangeWithMessage(exchange, HttpStatus.SC_FORBIDDEN, "reserved resource");
+                return;
+            }
+    
+            Object docId;
+    
+            if (content.get("_id") == null) {
+                if (context.getDocIdType() == DOC_ID_TYPE.OID || context.getDocIdType() == DOC_ID_TYPE.STRING_OID) {
+                    docId = new ObjectId();
+                } else {
+                    ResponseHelper.endExchangeWithMessage(exchange, HttpStatus.SC_NOT_ACCEPTABLE, "_id in content body is mandatory for documents with id type " + context.getDocIdType().name());
+                    return;
+                }
+    
+            } else {
+                docId = content.get("_id");
+            }
+    
+            int httpCode = this.documentDAO
+                    .upsertDocumentPost(context.getDBName(), context.getCollectionName(), docId, content, etag);
+
         }
 
         
