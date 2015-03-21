@@ -76,7 +76,7 @@ public class PostCollectionHandler extends PipedHttpHandler {
             //return;
             contentList = (BasicDBList)content;
             for (int i = 0; i < contentList.size(); i++) {
-                DBObject singleDoc = contentList.get(i);
+                DBObject singleDoc = (DBObject)contentList.get(i);
                 if (singleDoc.get("_id") != null && singleDoc.get("_id") instanceof String && RequestContext.isReservedResourceDocument((String) singleDoc.get("_id"))) {
                     ResponseHelper.endExchangeWithMessage(exchange, HttpStatus.SC_FORBIDDEN, "reserved resource");
                     return;
